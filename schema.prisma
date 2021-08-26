@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User{
+  user_id             Int @default(autoincrement())
+  user_username       String  @unique
+  user_password       String  @unique
+  salt                String  @unique
+  is_active           Boolean   @default(false)
+  created_at          DateTime  @default(now())
+  updated_at          DateTime? @updatedAt
+  personal_id         PersonalInformation?
+  hotelinfo_id        HotelInformation?
+  checkinfo_id        CheckinInformation?
+  profile_id          Profiles?
+
+  @@map("Users")
+
+}
+
+model Profile{
+  profile_id                Int @default(autoincrement())
+  profile_name_lastname     String
+  profile_email             String
+  profile_phone             String
+  profile_gender            Boolean @default(false)
+  profile_cashback          String
+  created_at                DateTime @default(now())
+  updated_at                DateTime? @updatedAt
+  ref_user_id               Int 
+  user                      User  @relation(fields: [ref_user_id], references: [user_id])
+  province_id               Province[]
+  review_id                 Review?
+  hotelbooking              HotelBooking[]
+  hotelticketing            HotelTicketing[]
+  @@map("Profiles")
+}
+
+model PersonalInformation{
+  personal_id               Int @default(autoincrement())
+  personal_name_lastname    String
+  personal_birthday         String
+  personal_email            String
+  personal_phone            String
+  personal_address          String
+  ref_user_id
+  user                      User  @relation(fields: [ref_user_id], references: [user_id])
+}
+
+model HotelInformation{
+  hotelinfo_id              Int @default(autoincrement())
+  hotelinfo_name            String
+  hotelinfo_address         String
+  hotelinfo_province        String
+  hotelinfo_district        String
+  hotelinfo_location        String
+  hotelinfo_image           String
+  ref_user_id               Int
+  user                      User  @relation(fields: [ref_user_id], references: [user_id])
+  ref_personal_id           Int
+  personalinformation       PersonalInformation @relation(fields: [ref_personal_id], references: [personal_id])
+  checkinfo_id              CheckinInformation[]
+  province_id               Province?
+  district_id               District?
+
+}
+
+model CheckinInformation{
+  checkinfo_id                    Int @default(autoincrement())
+  checkinfo_shot_check_in         String
+  checkinfo_shot_last_check_in    String
+  checkinfo_over_check_in         String
+  checkinfo_over_check_out        String
+  checkinfo_detail                String
+  hotelbooking_id                 HotelBooking[]
+  hotelticketing_id               HotelTicketing[]
+
+}
+
+model Province{
+  province_id       Int @default(autoincrement())
+  province_name     String
+  ref_profile_id    Int
+  profile           Profile @relation(fields:[ref_profile_id], references:[profile_id])
+  ref_hotelinfo_id  Int
+  HotelInformation  HotelInformation @relation(fields:[ref_hotelinfo_id], references:[hotelinfo_id])
+  district_id       District[]
+  
+  @@map("Provinces")
+
+}
+
+model District{
+  district_id       Int @default(autoincrement()) 
+  district_name     String
+  ref_province_id   Int
+  province          Province @relation(fields:[ref_province_id], references:[province_id])
+  ref_hotelinfo_id  Int
+  HotelInformation  HotelInformation @relation(fields:[ref_hotelinfo_id], references:[hotelinfo_id])
+
+  @@map("Districts")
+}
+
+model HotelBooking{
+  hotelbooking_id       Int @default(autoincrement())
+  hotelbooking_member   String
+  ref_profile_id        Int
+  profile               Profile @relation(fields:[ref_profile_id], references:[profile_id])
+  ref_checkinfo_id      Int
+  checkininformation    CheckinInformation  @relation(fields:[ref_checkinfo_id], references:[checkinfo_id])
+  review_id             Review?
+
+  @@map("HotelBookings")
+
+}
+
+model HotelTicketing{
+  hotelticketing_id       Int @default(autoincrement())
+  hotelticketing_member   String
+  ref_profile_id          Int
+  profile                 Profile @relation(fields:[ref_profile_id], references:[profile_id])
+  ref_checkinfo_id        Int
+  checkininformation      CheckinInformation  @relation(fields:[ref_checkinfo_id], references:[checkinfo_id])
+  review_id               Review?
+
+  @@map("HotelTicketings")
+}
+
+model Review{
+  review_id         Int @default(autoincrement())
+  review_score      String?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime? @updatedAt
+
+  @@map("Reviews")
+
+
+}
+
+
