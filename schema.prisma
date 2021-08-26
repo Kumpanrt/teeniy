@@ -19,8 +19,6 @@ model User{
   created_at          DateTime  @default(now())
   updated_at          DateTime? @updatedAt
   personal_id         PersonalInformation?
-  hotelinfo_id        HotelInformation?
-  checkinfo_id        CheckinInformation?
   profile_id          Profiles?
 
   @@map("Users")
@@ -38,8 +36,6 @@ model Profile{
   updated_at                DateTime? @updatedAt
   ref_user_id               Int 
   user                      User  @relation(fields: [ref_user_id], references: [user_id])
-  province_id               Province[]
-  review_id                 Review?
   hotelbooking              HotelBooking[]
   hotelticketing            HotelTicketing[]
   @@map("Profiles")
@@ -52,7 +48,7 @@ model PersonalInformation{
   personal_email            String
   personal_phone            String
   personal_address          String
-  ref_user_id
+  ref_user_id                Int
   user                      User  @relation(fields: [ref_user_id], references: [user_id])
 }
 
@@ -64,8 +60,6 @@ model HotelInformation{
   hotelinfo_district        String
   hotelinfo_location        String
   hotelinfo_image           String
-  ref_user_id               Int
-  user                      User  @relation(fields: [ref_user_id], references: [user_id])
   ref_personal_id           Int
   personalinformation       PersonalInformation @relation(fields: [ref_personal_id], references: [personal_id])
   checkinfo_id              CheckinInformation[]
@@ -81,8 +75,9 @@ model CheckinInformation{
   checkinfo_over_check_in         String
   checkinfo_over_check_out        String
   checkinfo_detail                String
-  hotelbooking_id                 HotelBooking[]
-  hotelticketing_id               HotelTicketing[]
+  ref_hotelinfo_id                Int
+  hoteliinformation               HotelInformation @relation(fields: [ref_hotelinfo_id], references: [hotelinfo_id])
+  hotelbooking_id                 HotelBookingTicketing[]
 
 }
 
@@ -110,40 +105,31 @@ model District{
   @@map("Districts")
 }
 
-model HotelBooking{
-  hotelbooking_id       Int @default(autoincrement())
-  hotelbooking_member   String
-  ref_profile_id        Int
-  profile               Profile @relation(fields:[ref_profile_id], references:[profile_id])
-  ref_checkinfo_id      Int
-  checkininformation    CheckinInformation  @relation(fields:[ref_checkinfo_id], references:[checkinfo_id])
-  review_id             Review?
+model HotelBookingTicketing{
+  hotelbookticket_id       Int @default(autoincrement())
+  hotelbookticket_members  String
+  hotelbookticket_type     Boolean @default(false)
+  ref_profile_id           Int
+  profile                  Profile @relation(fields:[ref_profile_id], references:[profile_id])
+  ref_checkinfo_id         Int
+  checkininformation       CheckinInformation  @relation(fields:[ref_checkinfo_id], references:[checkinfo_id])
+  review_id                Review?
 
-  @@map("HotelBookings")
+  @@map("HotelBookingTicketing")
 
-}
-
-model HotelTicketing{
-  hotelticketing_id       Int @default(autoincrement())
-  hotelticketing_member   String
-  ref_profile_id          Int
-  profile                 Profile @relation(fields:[ref_profile_id], references:[profile_id])
-  ref_checkinfo_id        Int
-  checkininformation      CheckinInformation  @relation(fields:[ref_checkinfo_id], references:[checkinfo_id])
-  review_id               Review?
-
-  @@map("HotelTicketings")
 }
 
 model Review{
-  review_id         Int @default(autoincrement())
-  review_score      String?
-  created_at        DateTime  @default(now())
-  updated_at        DateTime? @updatedAt
-
+  review_id                     Int @default(autoincrement())
+  review_score                  String?
+  created_at                    DateTime  @default(now())
+  updated_at                    DateTime? @updatedAt
+  ref_profile_id                Int
+  profile                       Profile @relation(fields:[ref_profile_id], references:[profile_id])
+  ref_hotelbooktcket_id         Int
+  hotelbookingticketing         HotelBookingTicketing @relation(fields: [ref_hotelbookticket_id], references:[hotelbookticket_id])
+  
   @@map("Reviews")
 
 
 }
-
-
