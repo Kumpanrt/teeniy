@@ -16,10 +16,11 @@ model User{
   user_password       String  @unique
   salt                String  @unique
   is_active           Boolean   @default(false)
+  user_role           Enum
   created_at          DateTime  @default(now())
   updated_at          DateTime? @updatedAt
   personal_id         PersonalInformation?
-  profile_id          Profiles?
+  profile_id          Profile?
 
   @@map("Users")
 
@@ -31,13 +32,15 @@ model Profile{
   profile_email             String
   profile_phone             String
   profile_gender            Boolean @default(false)
-  profile_cashback          String
+  profile_cashback_total    String
+  profile_like              Json?
   created_at                DateTime @default(now())
   updated_at                DateTime? @updatedAt
   ref_user_id               Int 
   user                      User  @relation(fields: [ref_user_id], references: [user_id])
-  hotelbooking              HotelBooking[]
-  hotelticketing            HotelTicketing[]
+  cashback_id               CashBack?
+  hoteltran_id              HotelTransaction?
+  review_id                 Review?
   @@map("Profiles")
 }
 
@@ -50,6 +53,7 @@ model PersonalInformation{
   personal_address          String
   ref_user_id                Int
   user                      User  @relation(fields: [ref_user_id], references: [user_id])
+  hotelinfo                 HotelInformation[]
 }
 
 model HotelInformation{
@@ -63,8 +67,8 @@ model HotelInformation{
   ref_personal_id           Int
   personalinformation       PersonalInformation @relation(fields: [ref_personal_id], references: [personal_id])
   checkinfo_id              CheckinInformation[]
-  province_id               Province?
-  district_id               District?
+  province_id               Province[]
+  district_id               District[]
 
 }
 
@@ -77,7 +81,7 @@ model CheckinInformation{
   checkinfo_detail                String
   ref_hotelinfo_id                Int
   hoteliinformation               HotelInformation @relation(fields: [ref_hotelinfo_id], references: [hotelinfo_id])
-  hotelbooking_id                 HotelBookingTicketing[]
+  hotelbooking_id                 HotelTransaction[]
 
 }
 
@@ -105,17 +109,17 @@ model District{
   @@map("Districts")
 }
 
-model HotelBookingTicketing{
-  hotelbookticket_id       Int @default(autoincrement())
-  hotelbookticket_members  String
-  hotelbookticket_type     Boolean @default(false)
+model HotelTransaction{
+  hoteltran_id             Int @default(autoincrement())
+  hoteltran_members        String
+  hoteltran_type           Boolean @default(false)
   ref_profile_id           Int
   profile                  Profile @relation(fields:[ref_profile_id], references:[profile_id])
   ref_checkinfo_id         Int
   checkininformation       CheckinInformation  @relation(fields:[ref_checkinfo_id], references:[checkinfo_id])
   review_id                Review?
 
-  @@map("HotelBookingTicketing")
+  @@map("HotelTransactions")
 
 }
 
@@ -126,10 +130,69 @@ model Review{
   updated_at                    DateTime? @updatedAt
   ref_profile_id                Int
   profile                       Profile @relation(fields:[ref_profile_id], references:[profile_id])
-  ref_hotelbooktcket_id         Int
-  hotelbookingticketing         HotelBookingTicketing @relation(fields: [ref_hotelbookticket_id], references:[hotelbookticket_id])
+  ref_hoteltran_id              Int
+  hoteltransaction              HotelTransaction @relation(fields: [ref_hoteltran_id], references:[hoteltran_id])
+  hotelrating                   HotelRating[]
   
   @@map("Reviews")
 
 
 }
+model CashBack{
+  cashback_id   Int @default(autoincrement())
+  cashback_text String
+  cashback_money_gift Int
+  ref_profile_id   Int
+  profile           Profile @relation(fields: [ref_profile_id], references:[profile_id])
+  ref_hoteltran_id  Int
+  hoteltran         HotelTransaction @relation(fields: [ref_hoteltran_id], references:[hoteltran_id])
+
+  @@map("CashBacks")
+}
+
+model RoomInformation{
+  roominfo_id       Int  @default(autoincrement())
+  roominfo_name     String
+  roominfo_size     Int
+  roominfo_type_bed String
+  roominfo_limit    Int
+  roominfo_amount   Int
+  roominfo_price    Int
+  roominfo_checkinfo_shot_check_in         String
+  roominfo_checkinfo_shot_last_check_in    String
+  roominfo_checkinfo_over_check_in         String
+  roominfo_checkinfo_over_check_out        String
+  ref_checkinfo_id      Int
+  checkinformation      CheckinInformation @relation(fields: [ref_checkinfo_id], references: [checkinfo_id])
+  facilitise            Facilitise[]
+}
+
+model Facilitise{
+  facilitise_id     Int @default(autoincrement())
+  facilitise_name   String
+  rooinformation    RoomInformation[]
+}
+
+model RoomInformation_has_Facilitise{
+  ref_roominfo_id   Int
+  roominformation   RoomInformation @relation(fields: [ref_roominfo_id], references: [roominfo_id])
+  ref_facilitise_id Int
+  facilitise        Facilitise @relation(fields: [ref_facilitise_id], references: [facilitise_id])
+}
+
+model HotelRating{
+  rate_id           Int @default(autoincrement())
+  rate_score        Int
+  rate_text         String?
+  ref_review_id     Int
+  review            Review @relation(fields: [ref_review_id], references: [review_id])
+  ref_hotel_id      Int
+  hotelimformation  HotelInformation @relation(fields: [ref_hotel_id], references: [hotelinfo_id])
+
+  @@map("HotelRatings")
+
+}
+
+
+
+
